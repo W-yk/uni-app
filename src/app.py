@@ -52,12 +52,30 @@ def get_transaction_fee(transaction_hash):
     """Endpoint to retrieve the transaction fee by hash."""
     transaction = Transaction.query.filter_by(transaction_hash=transaction_hash).first()
     if transaction is None:
-        return jsonify({'error': 'Transaction not recorded. Submit get-historical-transactions request first.'}), 404
+        
+        print(f"Transaction with hash {transaction_hash} not found in the database. Fetching data from rpc...")
+        transaction_data = utils.get_txn_from_rpc(transaction_hash)
+        processed_txn = utils.process_transaction(transaction_data)
+        transaction = Transaction(**processed_txn)
+        with app.app_context():
+            db.session.add(transaction)
+            db.session.commit()
     return jsonify({
         'transaction_hash': transaction.transaction_hash,
         'gas_fee_in_eth': str(transaction.gas_fee_in_eth),
         'gas_fee_in_usd': str(transaction.gas_fee_in_usd),
         'timestamp': str(transaction.timestamp),
+    })
+
+@app.route('/executed-price/<transaction_hash>', methods=['GET'])
+def get_executed_price(transaction_hash):
+    """Endpoint to retrieve the executed price of a transaction."""
+    price = utils.get_executed_price(transaction_hash)
+    if price is None:
+        return jsonify({'error': 'Get uniswap event executed price failed.'}), 404
+    return jsonify({
+        'transaction_hash': transaction_hash,
+        'executed_price': str(price),
     })
 
 
@@ -95,8 +113,8 @@ def poll_live_data():
 # Initialize the last polled time
 last_polled_time = time.time()
 
-# Schedule the live data polling job to run at regular intervals (e.g., every 1 minute)
-scheduler.add_job(func=poll_live_data, trigger="interval", seconds=1)
+# Schedule the live data polling job to run at regular intervals (e.g., every 5 seconds)
+scheduler.add_job(func=poll_live_data, trigger="interval", seconds=5)
 
 if __name__ == '__main__':
     app.run(debug=True)

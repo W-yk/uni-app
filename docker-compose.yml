@@ -10,6 +10,7 @@ services:
     environment:
       FLASK_ENV: development
       ETHERSCAN_API_KEY: ""
+      ALCHEMY_API_KEY: ""
       DATABASE_URL: postgresql://user:password@db/service_db
     depends_on:
       - db
