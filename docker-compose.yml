@@ -1,22 +1,27 @@
 version: '3.8'
+
 services:
   web:
     build: .
+    command: flask run --host=0.0.0.0
+    volumes:
+      - .:/code
     ports:
       - "5000:5000"
-    environment:
-      - FLASK_ENV=development
     depends_on:
       - db
-    volumes:
-      - .:/app
-  db:
-    image: postgres:13
     environment:
-      POSTGRES_DB: uni_feedb
-      POSTGRES_USER: <username>
-      POSTGRES_PASSWORD: <password>
+      FLASK_ENV: development
+      DATABASE_URL: postgresql://user:password@db/service_db
+
+  db:
+    image: postgres:latest
     volumes:
       - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: user
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: service_db
+
 volumes:
   postgres_data:
