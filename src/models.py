@@ -1,4 +1,4 @@
-from app import db
+from src import db
 
 class Transaction(db.Model):
     transaction_hash = db.Column(db.String, primary_key=True)

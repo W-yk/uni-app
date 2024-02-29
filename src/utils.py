@@ -1,11 +1,13 @@
+import os
+import time
 import requests
 
 # Global constants
+ETHERSCAN_API_KEY = os.environ.get('ETHERSCAN_API_KEY')
 UNI_CONTRACT_ADDRESS = "0x88e6a0c2ddd26feeb64f039a2c41296fcb3f5640"
 USDC_CONTRACT_ADDRESS = "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48"
-ETHERSCAN_API_KEY = ""  # Replace this with your actual Etherscan API key.
 ETHERSCAN_BASE_URL = "https://api.etherscan.io/api"
-BINANCE_BASE_URL = "https://api.binance.com/api/v3/klines"
+BINANCE_BASE_URL = "https://api.binance.com/api/v3"
 
 def fetch_token_transactions(contract_address,address, page=1, offset=100,
                              startblock=0, endblock=27025780, sort='asc'):
@@ -38,7 +40,8 @@ def fetch_klines(symbol, interval, start_time=None, end_time=None, limit=500):
         "endTime": end_time,
         "limit": limit,
     }
-    response = requests.get(BINANCE_BASE_URL, params=params)
+    BINANCE_BASE_URL = "https://api.binance.com/api/v3"
+    response = requests.get(BINANCE_BASE_URL+"/klines", params=params)
     return response.json() if response.ok else {"error": "Failed to fetch data from Binance."}
 
 def get_block_number_by_timestamp(timestamp):
@@ -66,12 +69,17 @@ def fetch_historical_transactions(start_time, end_time):
     while True:
         response = fetch_token_transactions(USDC_CONTRACT_ADDRESS,UNI_CONTRACT_ADDRESS, page=page,
                                             startblock=start_blk, endblock=end_blk, offset=offset)
-        if "error" in response:
-            return response
+        
+        # Retry if the response contains an error or a limit message
+        if "error" in response or "limit" in response['result']:
+            time.sleep(1)
+            continue
+
         transactions.extend(response["result"])
         if len(response["result"]) < offset:
             break
         page += 1
+        
     return transactions
 
 def get_eth_price_for_timestamp(timestamp):
