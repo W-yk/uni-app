@@ -56,8 +56,9 @@ def get_transaction_fee(transaction_hash):
         print(f"Transaction with hash {transaction_hash} not found in the database. Fetching data from rpc...")
         transaction_data = utils.get_txn_from_rpc(transaction_hash)
         processed_txn = utils.process_transaction(transaction_data)
-        transaction = Transaction(**processed_txn)
+        
         with app.app_context():
+            transaction = Transaction(**processed_txn)
             db.session.add(transaction)
             db.session.commit()
     return jsonify({
@@ -70,7 +71,7 @@ def get_transaction_fee(transaction_hash):
 @app.route('/executed-price/<transaction_hash>', methods=['GET'])
 def get_executed_price(transaction_hash):
     """Endpoint to retrieve the executed price of a transaction."""
-    price = utils.get_executed_price(transaction_hash)
+    price = utils.get_swap_executed_price_from_txhash(transaction_hash)
     if price is None:
         return jsonify({'error': 'Get uniswap event executed price failed.'}), 404
     return jsonify({

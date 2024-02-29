@@ -2,6 +2,7 @@ import os
 import time
 import requests
 from web3 import Web3
+from eth_abi import decode
 
 # Global constants
 ETHERSCAN_API_KEY = os.environ.get('ETHERSCAN_API_KEY')
