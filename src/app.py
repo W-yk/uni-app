@@ -1,69 +1,102 @@
-# from flask import Flask
-# from app.routes import bp as api_bp
-# from flask_sqlalchemy import SQLAlchemy
-# from flask_apscheduler import APScheduler
+from flask import Flask, request, jsonify
+from flask_sqlalchemy import SQLAlchemy
+from apscheduler.schedulers.background import BackgroundScheduler
+from datetime import datetime
+import os
+import time
 
-# from .services import schedule_tasks
+import utils  # Assuming utils.py is in the same directory for utility functions
 
-# app = Flask(__name__)
-
-# # ... other app configuration ...
-
-# # Initialize APScheduler with your app
-# scheduler = APScheduler(app=app)
-
-# # Call schedule_tasks at initialization
-# schedule_tasks()
-
-# db = SQLAlchemy()
-
-# def create_app():
-#     app = Flask(__name__)
-#     app.register_blueprint(api_bp)
-#     app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('DATABASE_URL')
-#     db.init_app(app)
-
-#     with app.app_context():
-#         db.create_all()
-
-#     return app
+# Configure Flask application
+app = Flask(__name__)
+app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
+app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+app.app_context().push()
+# Initialize database
+db = SQLAlchemy(app)
 
 
-# from flask import Blueprint, request, jsonify
-# from .services import record_historical_transactions, get_transaction_fee
-# from .models import db
+# Define the Transaction model according to the provided schema
+class Transaction(db.Model):
+    transaction_hash = db.Column(db.String, primary_key=True)
+    block_number = db.Column(db.Integer)
+    timestamp = db.Column(db.BigInteger)
+    gas_fee_in_eth = db.Column(db.Numeric)
+    gas_fee_in_usd = db.Column(db.Numeric)
 
-# bp = Blueprint('api', __name__, url_prefix='/api')
 
-# @bp.route('/record-historical', methods=['POST'])
-# def record_historical():
-#     data = request.get_json()
-#     start_time = data.get('start_time')
-#     end_time = data.get('end_time')
+# Create database tables
+db.create_all()
+
+# Initialize APScheduler for background tasks
+scheduler = BackgroundScheduler()
+scheduler.start()
+
+
+def add_txns_to_db(txns):
+    """Add transactions to the database."""
+    count = 0
+    for txn in txns:
+        # if the transaction already exists in the database, skip it
+        if Transaction.query.filter_by(transaction_hash=txn["hash"]).first():
+            continue
+        processed_txn = utils.process_transaction(txn)
+        new_txn = Transaction(**processed_txn)
+        count += 1
+        db.session.add(new_txn)
+    db.session.commit()
+    return count
+
+@app.route('/transaction-fee/<transaction_hash>', methods=['GET'])
+def get_transaction_fee(transaction_hash):
+    """Endpoint to retrieve the transaction fee by hash."""
+    transaction = Transaction.query.filter_by(transaction_hash=transaction_hash).first()
+    if transaction is None:
+        return jsonify({'error': 'Transaction not recorded. Submit get-historical-transactions request first.'}), 404
+    return jsonify({
+        'transaction_hash': transaction.transaction_hash,
+        'gas_fee_in_eth': str(transaction.gas_fee_in_eth),
+        'gas_fee_in_usd': str(transaction.gas_fee_in_usd),
+        'timestamp': str(transaction.timestamp),
+    })
+
+
+@app.route('/get-historical-transactions', methods=['POST'])
+def get_historical_transactions():
+    """Endpoint to fetch historical transactions and add them to the database."""
+    data = request.get_json()
+    start_time, end_time = data['startTime'], data['endTime']
+
+    def fetch_and_store_transactions():
+        transactions = utils.fetch_historical_transactions(start_time, end_time)
+
+        with app.app_context():
+            success_count = add_txns_to_db(transactions)
+        print(f"Added {success_count} transactions from {start_time} to {end_time} to the database.")
+
+    print(f"Scheduling job to fetch transactions from {start_time} to {end_time}...")
+    scheduler.add_job(func=fetch_and_store_transactions, trigger="date", run_date=datetime.now())
+    return jsonify({'message': 'Fetching historical transactions in progress...'}), 202
+
+
+def poll_live_data():
+    """Function to poll live transaction data at regular intervals."""
+    global last_polled_time
+    print("Polling for live data...")
     
-#     # Validate input
-#     if not start_time or not end_time:
-#         return jsonify({'error': 'Invalid request, start_time and end_time are required.'}), 400
+    now = time.time()
+    
+    live_transactions = utils.fetch_historical_transactions(int(last_polled_time), int(now))
+    with app.app_context():
+        success_count = add_txns_to_db(live_transactions)
+    print(f"Added {success_count} live transactions to the database.")
+    last_polled_time = now
 
-#     try:
-#         # Attempt to record the historical transactions based on the provided timestamps
-#         record_historical_transactions(start_time, end_time)
-#         return jsonify({'status': 'Batch job initiated'}), 202
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
+# Initialize the last polled time
+last_polled_time = time.time()
 
-# @bp.route('/transaction-fee/<transaction_hash>', methods=['GET'])
-# def transaction_fee(transaction_hash):
-#     # Validate hash input
-#     if not transaction_hash:
-#         return jsonify({'error': 'Invalid request, transaction_hash is required.'}), 400
+# Schedule the live data polling job to run at regular intervals (e.g., every 1 minute)
+scheduler.add_job(func=poll_live_data, trigger="interval", seconds=1)
 
-#     try:
-#         # Retrieve the transaction fee details for the specified transaction hash
-#         fee_details = get_transaction_fee(transaction_hash)
-#         if fee_details:
-#             return jsonify(fee_details), 200
-#         else:
-#             return jsonify({'error': 'Transaction not found.'}), 404
-#     except Exception as e:
-#         return jsonify({'error': str(e)}), 500
+if __name__ == '__main__':
+    app.run(debug=True)

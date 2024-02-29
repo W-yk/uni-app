@@ -1,5 +1,6 @@
-Flask==2.1.2
-psycopg2-binary==2.9.3
-web3==5.29.1
-requests==2.27.1
-Flask-APScheduler==1.12.2
+web3
+requests
+Flask-APScheduler
+Flask
+Flask-SQLAlchemy
+psycopg2-binary

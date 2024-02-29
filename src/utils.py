@@ -86,8 +86,9 @@ def get_eth_price_for_timestamp(timestamp):
     """
     Fetch the price of ETH at a specific timestamp from Binance.
     """
-    response = fetch_klines("ETHUSDT", "1m", start_time=timestamp, end_time=timestamp + 1, limit=1)
-    return response[0][4] if not "error" in response else response
+    unix_timestamp = int(timestamp * 1000)
+    response = fetch_klines("ETHUSDT", "1s", start_time=unix_timestamp-1000, end_time=unix_timestamp, limit=2)
+    return float(response[-1][4]) if response else 0
 
 def calculate_transaction_fee_eth(gas_used, gas_price):
     """
@@ -106,7 +107,8 @@ def process_transaction(transaction):
     gas_price = int(transaction["gasPrice"])
 
     fee_eth = calculate_transaction_fee_eth(gas_used, gas_price)
-    fee_usd = fee_eth * float(get_eth_price_for_timestamp(int(timestamp)))
+    price = float(get_eth_price_for_timestamp(int(timestamp)))
+    fee_usd = fee_eth * price
     return {
         "transaction_hash": transaction_hash,
         "block_number": block_number,
