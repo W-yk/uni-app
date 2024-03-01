@@ -148,7 +148,7 @@ def get_swap_executed_price_from_txhash(txhash):
     # Loop through the logs
     for log in logs:
         # Check if the event signature matches the Uniswap V2 swap event
-        if log.topics[0].hex() == uniswap_v2_swap_signature:
+        if log.topics[0].hex() == uniswap_v2_swap_signature and log.address.lower()==UNI_CONTRACT_ADDRESS:
             # Decode the event data
             usdc_amount_change, weth_amount_change, _, _, _ = decode(uniswap_v2_swap_input_types, bytes.fromhex(log.data.hex()[2:]))
             # Calculate the price 6 decimals for USDC and 18 decimals for WETH

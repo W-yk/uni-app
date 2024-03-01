@@ -53,6 +53,26 @@ def add_txns_to_db(txns):
     db.session.commit()
     return count
 
+def poll_live_data():
+    """Function to poll live transaction data at regular intervals."""
+    global last_polled_time
+    print(f"Polling for live data since {last_polled_time}")
+    
+    now = time.time()
+    
+    live_transactions = utils.fetch_historical_transactions(int(last_polled_time), int(now))
+    with app.app_context():
+        success_count = add_txns_to_db(live_transactions)
+    print(f"Added {success_count} live transactions to the database.")
+    last_polled_time = now
+
+# Initialize the last polled time
+last_polled_time = time.time()
+
+# Schedule the live data polling job to run at regular intervals (e.g., every 5 seconds)
+scheduler.add_job(func=poll_live_data, trigger="interval", seconds=5)
+
+
 # Initialize Swagger UI
 swagger_ui_path = os.path.join(app.root_path, 'swaggerui')  # Adjust path if needed
 swagger_url = '/api/docs'
@@ -136,7 +156,7 @@ parser = ns.parser()
 parser.add_argument('startTime', required=True, type=str, help='Start time of the transaction period')
 parser.add_argument('endTime', required=True, type=str, help='End time of the transaction period')
 
-@ns.route('/get-historical-transactions')
+@ns.route('/retrieve-historical-transactions')
 class HistoricalTransactionsResource(Resource):
     @ns.doc('get_historical_transactions')
     @ns.expect(parser)
@@ -163,25 +183,6 @@ class HistoricalTransactionsResource(Resource):
     
 
 api.add_namespace(ns)
-
-def poll_live_data():
-    """Function to poll live transaction data at regular intervals."""
-    global last_polled_time
-    print(f"Polling for live data since {last_polled_time}")
-    
-    now = time.time()
-    
-    live_transactions = utils.fetch_historical_transactions(int(last_polled_time), int(now))
-    with app.app_context():
-        success_count = add_txns_to_db(live_transactions)
-    print(f"Added {success_count} live transactions to the database.")
-    last_polled_time = now
-
-# Initialize the last polled time
-last_polled_time = time.time()
-
-# Schedule the live data polling job to run at regular intervals (e.g., every 5 seconds)
-scheduler.add_job(func=poll_live_data, trigger="interval", seconds=5)
 
 if __name__ == '__main__':
     app.run(debug=True)
