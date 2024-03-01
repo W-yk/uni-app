@@ -76,13 +76,14 @@ def fetch_historical_transactions(start_time, end_time, max_retries=5):
                                             startblock=start_blk, endblock=end_blk, offset=offset)
 
         # Check for the existence of an error or a limit message in the response
-        if not response or response['message'] != "OK":
+        if not response or response['message'] not in  ["OK",'No transactions found']:
             if retries < max_retries:
                 time.sleep(1)  # wait before retrying
                 retries += 1  # increment retries counter
                 continue
             else:
                 print("Max retries reached. Exiting.")
+                print("error response: ",response)
                 break 
 
         transactions.extend(response["result"])
