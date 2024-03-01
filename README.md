@@ -39,7 +39,7 @@ To get Alchemy api key, visit : [https://dashboard.alchemy.com/] and set up a et
 
 To ensure a seamless deployment and execution of our service, please adhere to the following detailed steps:
 
-1. **Building the containers**
+#### 1. **Building the containers**
 
 Initiate the creation of the Docker containers with:
 
@@ -49,7 +49,7 @@ docker-compose build --no-cache
 
 This command constructs the containers from scratch, guaranteeing that your environment is based on the latest configurations and dependencies specified within the Dockerfiles.
 
-2. **Executing the Test Suite**
+#### 2. **Executing the Test Suite**
 
 To validate the integrity and functionality of the application, run the automated tests by executing:
 
@@ -68,7 +68,7 @@ OK
 
 A message indicating "OK" confirms that all tests have passed without any errors, implying that the application is behaving as expected.
 
-3. **Launching the Application**
+#### 3. **Launching the Application**
 
 To start the API service, use the command:
 
@@ -78,7 +78,7 @@ docker-compose up api
 
 Append `-d` if you prefer running the application in detached mode, allowing it to operate in the background.
 
-4. **Stopping the Application**
+#### 4. **Stopping the Application**
 
 When you need to halt the running services, the following command gracefully brings down the application and its associated containers:
 
@@ -86,7 +86,7 @@ When you need to halt the running services, the following command gracefully bri
 docker-compose down
 ```
 
-5. **Purging the Database Volume**
+#### 5. **Purging the Database Volume**
 
 To reset the database or clear accumulated data, you can clean up the existing database volume with:
 
