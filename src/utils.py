@@ -62,30 +62,37 @@ def get_block_number_by_timestamp(timestamp):
     response = requests.get(ETHERSCAN_BASE_URL, params=params)
     return response.json() if response.ok else {"error": "Failed to fetch data from Etherscan."}
 
-def fetch_historical_transactions(start_time, end_time):
+def fetch_historical_transactions(start_time, end_time, max_retries=5):
     """
     Fetch historical transactions for a defined time range from Etherscan.
     """
     transactions = []
     page, offset = 1, 1000
     start_blk, end_blk = (get_block_number_by_timestamp(t)["result"] for t in (start_time, end_time))
+    retries = 0  # Initialize retries counter
 
     while True:
-        response = fetch_token_transactions(USDC_CONTRACT_ADDRESS,UNI_CONTRACT_ADDRESS, page=page,
+        response = fetch_token_transactions(USDC_CONTRACT_ADDRESS, UNI_CONTRACT_ADDRESS, page=page,
                                             startblock=start_blk, endblock=end_blk, offset=offset)
-        
-        # Retry if the response contains an error or a limit message
-        if "error" in response or "limit" in response['result']:
-            time.sleep(1)
-            continue
+
+        # Check for the existence of an error or a limit message in the response
+        if not response or response['message'] != "OK":
+            if retries < max_retries:
+                time.sleep(1)  # wait before retrying
+                retries += 1  # increment retries counter
+                continue
+            else:
+                print("Max retries reached. Exiting.")
+                break 
 
         transactions.extend(response["result"])
+        # Check if the last page of transactions has been reached
         if len(response["result"]) < offset:
-            break
+            break  # Exit the loop if fewer transactions than the offset are returned
         page += 1
+        retries = 0  # Reset retries counter after a successful fetch
         
     return transactions
-
 def get_eth_price_for_timestamp(timestamp):
     """
     Fetch the price of ETH at a specific timestamp from Binance.

@@ -2,25 +2,26 @@ import unittest
 from unittest.mock import patch
 import sys
 import time
-# Assuming the script is named `src.utils.py`
-from src.utils import *
+from utils import *
 
-class TestCryptoAPI(unittest.TestCase):
+class TestUtils(unittest.TestCase):
 
-    def test_fetch_token_transactions(self):
-        res = fetch_token_transactions(USDC_CONTRACT_ADDRESS,UNI_CONTRACT_ADDRESS,1,10,0,999999999)
+    
+    def test_fetch_token_transactions(self, mock_get):
+        res = fetch_token_transactions(USDC_CONTRACT_ADDRESS,UNI_CONTRACT_ADDRESS,1,10,1709197799,999999999)
         self.assertGreater(len(res['result']), 0)
 
+    
     def test_fetch_historical_transactions(self):
-        res = fetch_historical_transactions(1709197799, 1809197799)
+        res = fetch_historical_transactions(1709197799, 1709197799)
         self.assertGreater(len(res), 0)
-        
+    
     def test_fetch_token_transactions(self):
-        res = fetch_token_transactions(USDC_CONTRACT_ADDRESS,UNI_CONTRACT_ADDRESS,1,10,0,999999999)
+        res = fetch_token_transactions(USDC_CONTRACT_ADDRESS,UNI_CONTRACT_ADDRESS,1,10,1709197799,999999999)
         self.assertGreater(len(res), 0)
         
     def test_fetch_klines(self):
-        res = fetch_klines('ETHUSDT',"1s",0,99999999999999999)
+        res = fetch_klines('ETHUSDT',"1s",1709197799,99999999999999999)
         self.assertGreater(len(res), 0)
 
     def test_calculate_transaction_fee_eth(self):
@@ -29,8 +30,8 @@ class TestCryptoAPI(unittest.TestCase):
         expected_fee_eth = 0.00005  # 50,000 gas * 1 Gwei / 1e18 to convert wei to eth
         self.assertAlmostEqual(calculate_transaction_fee_eth(gas_used, gas_price), expected_fee_eth)
 
-    @patch('src.utils.get_eth_price_for_timestamp')
-    @patch('src.utils.calculate_transaction_fee_eth')
+    @patch('utils.get_eth_price_for_timestamp')
+    @patch('utils.calculate_transaction_fee_eth')
     def test_process_transaction(self, mock_calculate_fee, mock_get_price):
         mock_calculate_fee.return_value = 0.01  # mock fee in ETH
         mock_get_price.return_value = 2000  # mock ETH price in USD
