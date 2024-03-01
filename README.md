@@ -4,7 +4,7 @@
 
 This project is a backend service designed to keep track of transaction fees in USDT for all Uniswap WETHUSDC Transactions. It supports real-time data recording and historical batch data recording. Using this service, users can query the transaction fee for any given transaction hash. The service leverages Ethereum blockchain data, specifically focusing on Uniswap V3 USDC/ETH pool transactions.
 
-# Design mind-map
+# Design Mindmap
 
 <img src="./DesignMindmap.png" width="50%">
 
