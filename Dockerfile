@@ -18,9 +18,9 @@ EXPOSE 5000
 
 # Set environment variables
 ENV FLASK_APP=src/app.py
-ENV FLASK_RUN_HOST=0.0.0.0
 ENV NAME=UniFeeTracker
 ENV PYTHONPATH=/app/src
 ENV PYTHONUNBUFFERED=1
-# Command to run the Flask application, leveraging the environment variables
-CMD ["flask", "run"]
+
+#  Command to run the Flask application using Gunicorn 
+CMD ["gunicorn", "-b", "0.0.0.0:5000", "app:app"]
