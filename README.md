@@ -21,8 +21,8 @@ Follow these steps to get the project up and running:
 ### 1. Clone the Repository
 
 ```sh
-git clone https://github.com/your-github-username/uniswap-fee-tracker.git
-cd uniswap-fee-tracker
+git clone https://github.com/W-yk/uni-app.git
+cd uni-app
 ```
 ### 2. Setup Environment Variables
 
