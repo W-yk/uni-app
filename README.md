@@ -11,6 +11,8 @@ This project is a backend service designed to keep track of transaction fees in 
 ## Requirements
 
 - Docker and `docker-compose` must be installed on the machine.
+- Etherscan api key
+- Alchemy RPC api key
 
 ## Installation Instructions
 
@@ -30,7 +32,9 @@ The application requires certain environment variables(API KEYs) to run correctl
 3. Change `.env.example` to `.env` 
 
 To get etherscan api key, visit : [https://etherscan.io/myapikey]
+
 To get Alchemy api key, visit : [https://dashboard.alchemy.com/] and set up a eth mainnet app.
+
 ### 3. Build, Test, and Run the Application
 
 To ensure a seamless deployment and execution of our service, please adhere to the following detailed steps:
