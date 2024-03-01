@@ -12,14 +12,20 @@ from datetime import datetime
 import utils  # Assuming utils.py is in the same directory for utility functions
 from flask_restx  import Api, Namespace, Resource, fields
 
+from flask_caching import Cache
 
 # Configure Flask application
 app = Flask(__name__)
+app.config['CACHE_TYPE'] = 'RedisCache'
+app.config['CACHE_REDIS_URL'] = os.getenv('REDIS_URL')
 app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('DATABASE_URL')
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
 app.app_context().push()
-# Initialize database
+
+# Initialize database and cache
 db = SQLAlchemy(app)
+cache = Cache(app)
 
 
 # Define the Transaction model according to the provided schema
@@ -103,6 +109,7 @@ class TransactionFee(Resource):
     @ns.response(200, 'Transaction found',transaction_model)
     @ns.response(201, 'Transaction fetched from RPC and stored')
     @ns.response(404, 'Transaction not found')
+    @cache.cached(timeout=50, query_string=True)
     def get(self, transaction_hash):
         """Endpoint to retrieve the transaction fee by hash."""
         transaction = Transaction.query.filter_by(transaction_hash=transaction_hash).first()
@@ -139,6 +146,7 @@ class ExecutedPriceResource(Resource):
     @ns.doc('get_executed_price')
     @ns.response(200, 'Success', executed_price_model)
     @ns.response(404, 'Transaction not found')
+    @cache.cached(timeout=50, query_string=True)
     def get(self, transaction_hash):
         """Endpoint to retrieve the executed price of a transaction."""
         price = utils.get_swap_executed_price_from_txhash(transaction_hash)
@@ -162,6 +170,7 @@ class HistoricalTransactionsResource(Resource):
     @ns.expect(parser)
     @ns.response(202, 'Fetching historical transactions in progress')
     @ns.response(400, 'Invalid input data')
+    @cache.cached(timeout=50)
     def post(self):
         """Endpoint to fetch historical transactions and add them to the database."""
         data = parser.parse_args()

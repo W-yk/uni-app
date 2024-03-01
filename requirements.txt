@@ -8,3 +8,5 @@ eth_abi
 gunicorn
 python-dotenv
 flask-restx 
+Flask-Caching
+redis

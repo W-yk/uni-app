@@ -4,6 +4,10 @@
 
 This project is a backend service designed to keep track of transaction fees in USDT for all Uniswap WETHUSDC Transactions. It supports real-time data recording and historical batch data recording. Using this service, users can query the transaction fee for any given transaction hash. The service leverages Ethereum blockchain data, specifically focusing on Uniswap V3 USDC/ETH pool transactions.
 
+## Design mind-map
+
+<img src="./DesignMindmap.png" width="50%">
+
 ## Requirements
 
 - Docker and `docker-compose` must be installed on the machine.
@@ -18,11 +22,20 @@ Follow these steps to get the project up and running:
 git clone https://github.com/your-github-username/uniswap-fee-tracker.git
 cd uniswap-fee-tracker
 ```
-### 2. Build, Test, and Run the Application
+### 2. Setup Environment Variables
+
+The application requires certain environment variables(API KEYs) to run correctly. Follow the steps below:
+1. Locate the `.env.example` file below /src.
+2. Fill in ETHERSCAN_API_KEY,ALCHEMY_API_KEY after each '='
+3. Change `.env.example` to `.env` 
+
+To get etherscan api key, visit : [https://etherscan.io/myapikey]
+To get Alchemy api key, visit : [https://dashboard.alchemy.com/] and set up a eth mainnet app.
+### 3. Build, Test, and Run the Application
 
 To ensure a seamless deployment and execution of our service, please adhere to the following detailed steps:
 
-#### **Building the containers**
+1. **Building the containers**
 
 Initiate the creation of the Docker containers with:
 
@@ -32,7 +45,7 @@ docker-compose build --no-cache
 
 This command constructs the containers from scratch, guaranteeing that your environment is based on the latest configurations and dependencies specified within the Dockerfiles.
 
-#### **Executing the Test Suite**
+2. **Executing the Test Suite**
 
 To validate the integrity and functionality of the application, run the automated tests by executing:
 
@@ -51,7 +64,7 @@ OK
 
 A message indicating "OK" confirms that all tests have passed without any errors, implying that the application is behaving as expected.
 
-#### **Launching the Application**
+3. **Launching the Application**
 
 To start the API service, use the command:
 
@@ -61,7 +74,7 @@ docker-compose up api
 
 Append `-d` if you prefer running the application in detached mode, allowing it to operate in the background.
 
-#### **Stopping the Application**
+4. **Stopping the Application**
 
 When you need to halt the running services, the following command gracefully brings down the application and its associated containers:
 
@@ -69,7 +82,7 @@ When you need to halt the running services, the following command gracefully bri
 docker-compose down
 ```
 
-#### **Purging the Database Volume**
+5. **Purging the Database Volume**
 
 To reset the database or clear accumulated data, you can clean up the existing database volume with:
 
@@ -106,6 +119,6 @@ This page provides a detailed overview of the available endpoints and their spec
 The system is designed with modularity, scalability, and reliability in mind:
 
 - **API Design**: RESTful principles are employed to ensure that the API is stateless, cacheable, and easy to use.
-- **Database**: We chose PostgreSQL for its robustness, scalability, and support for complex queries.
-- **Caching & Scalability**: While not implemented in the current version, Redis can be integrated for caching responses and improving read performance.
+- **Database**: Chose PostgreSQL for its robustness, scalability, and support for complex queries.
+- **Caching & Scalability**: Used redis to reduces load on the database by caching hot data, improved response times for frequently requested data.
 - **Background Tasks**: Real-time data fetching and batch processing for historical data are handled by APScheduler, decoupling them from the API requests, thus improving API response times and system reliability.
