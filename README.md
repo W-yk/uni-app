@@ -109,13 +109,13 @@ This page provides a detailed overview of the available endpoints and their spec
 # Key Endpoints:
 
 - **Get Transaction Fee**: Retrieves the transaction fee by hash.
-    - `GET /api/transactions/transaction-fee/<transaction_hash>`
+    - `GET /transactions/transaction-fee/<transaction_hash>`
 
 - **Retrieve Executed Price**: Gets the executed price of a transaction.
-    - `GET /api/transactions/executed-price/<transaction_hash>`
+    - `GET /transactions/executed-price/<transaction_hash>`
 
 - **Retrieve Historical Transactions**: Triggers a job to fetch and store historical transactions in a given time range.
-    - `POST /api/transactions/retrieve-historical-transactions` 
+    - `POST /transactions/retrieve-historical-transactions` 
     - Request Body: `{"startTime": "start_timestamp", "endTime": "end_timestamp"}`
 
 # Architectural Principles and Design Considerations
