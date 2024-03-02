@@ -28,16 +28,23 @@ cd uni-app
 
 The application requires certain environment variables(API KEYs) to run correctly. Follow the steps below:
 1. Locate the `.env.example` file below /src.
-2. Fill in ETHERSCAN_API_KEY,ALCHEMY_API_KEY after each '='
+2. Fill in both ETHERSCAN_API_KEY and ALCHEMY_API_KEY after '='
 3. Change `.env.example` to `.env` 
 
-To get etherscan api key, visit : [https://etherscan.io/myapikey]
+To get Etherscan api key, visit : [https://etherscan.io/myapikey]
 
-To get Alchemy api key, visit : [https://dashboard.alchemy.com/] and set up a eth mainnet app.
+To get Alchemy api key, visit : [https://dashboard.alchemy.com/] and set up an ETH mainnet app.
 
 ## 3. Build, Test, and Run the Application
 
-To ensure a seamless deployment and execution of our service, please adhere to the following detailed steps:
+Before executing the command below, ensure you are located in the root directory(uni-app/) of this application. 
+The application can be executed with a single command:
+
+```sh
+docker-compose up api --build  
+```
+
+For a comprehensive process covering Building, Testing, and Execution, please follow the detailed steps outlined below:
 
 ### 1. **Building the containers**
 

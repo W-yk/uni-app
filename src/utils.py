@@ -13,6 +13,7 @@ BINANCE_BASE_URL = "https://api.binance.com/api/v3"
 ALCHEMY_RPC_URL = f"https://eth-mainnet.g.alchemy.com/v2/{os.environ.get('ALCHEMY_API_KEY')}"
 
 w3 = Web3(Web3.HTTPProvider(ALCHEMY_RPC_URL))
+
 def fetch_token_transactions(contract_address,address, page=1, offset=100,
                              startblock=0, endblock=27025780, sort='asc'):
     """
@@ -143,9 +144,10 @@ def get_txn_from_rpc(txn_hash):
     
     return txn
 
-
 def get_swap_executed_price_from_txhash(txhash):
-
+    """
+    Fetch the transaction receipt and calculate executed price.
+    """
     uniswap_v2_swap_signature = "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67"
     uniswap_v2_swap_input_types = [ "int256", "int256", "uint160", "uint128", "int24"]
 

@@ -2,17 +2,17 @@
 
 import os
 import time
+from datetime import datetime
 from dotenv import load_dotenv
 load_dotenv()
 
 from flask import Flask, request, jsonify
+from flask_restx  import Api, Namespace, Resource, fields
+from flask_caching import Cache
 from flask_sqlalchemy import SQLAlchemy
 from apscheduler.schedulers.background import BackgroundScheduler
-from datetime import datetime
-import utils  # Assuming utils.py is in the same directory for utility functions
-from flask_restx  import Api, Namespace, Resource, fields
 
-from flask_caching import Cache
+import utils  
 
 # Configure Flask application
 app = Flask(__name__)
@@ -27,7 +27,6 @@ app.app_context().push()
 db = SQLAlchemy(app)
 cache = Cache(app)
 
-
 # Define the Transaction model according to the provided schema
 class Transaction(db.Model):
     transaction_hash = db.Column(db.String, primary_key=True)
@@ -36,14 +35,8 @@ class Transaction(db.Model):
     gas_fee_in_eth = db.Column(db.Numeric)
     gas_fee_in_usd = db.Column(db.Numeric)
 
-
 # Create database tables
 db.create_all()
-
-# Initialize APScheduler for background tasks
-scheduler = BackgroundScheduler()
-scheduler.start()
-
 
 def add_txns_to_db(txns):
     """Add transactions to the database."""
@@ -72,15 +65,18 @@ def poll_live_data():
     print(f"Added {success_count} live transactions to the database.")
     last_polled_time = now
 
-# Initialize the last polled time
+# Initialize APScheduler for background tasks
+scheduler = BackgroundScheduler()
+scheduler.start()
+
+# Initialize the global variable last polled time
 last_polled_time = time.time()
 
 # Schedule the live data polling job to run at regular intervals (e.g., every 5 seconds)
 scheduler.add_job(func=poll_live_data, trigger="interval", seconds=5)
 
-
 # Initialize Swagger UI
-swagger_ui_path = os.path.join(app.root_path, 'swaggerui')  # Adjust path if needed
+swagger_ui_path = os.path.join(app.root_path, 'swaggerui') 
 swagger_url = '/api/docs'
 api = Api(
     app,
@@ -93,8 +89,6 @@ api = Api(
 # Define the namespace for grouping API endpoints
 ns = Namespace('transactions', description='Transaction-related operations')
 
-
-
 transaction_model = api.model('Transaction', {
     'transaction_hash': fields.String(required=True, description='The transaction hash'),
     'gas_fee_in_eth': fields.String(description='Gas fee in Ethereum'),
@@ -102,12 +96,11 @@ transaction_model = api.model('Transaction', {
     'timestamp': fields.String(description='Timestamp of the transaction'),
 })
 
-
 @ns.route('/transaction-fee/<transaction_hash>')
 class TransactionFee(Resource):
     @ns.doc('get_transaction_fee')
-    @ns.response(200, 'Transaction found',transaction_model)
-    @ns.response(201, 'Transaction fetched from RPC and stored')
+    @ns.response(200, 'Transaction fetched from database',transaction_model)
+    @ns.response(201, 'Transaction fetched from RPC and stored',transaction_model)
     @ns.response(404, 'Transaction not found')
     @cache.cached(timeout=50, query_string=True)
     def get(self, transaction_hash):
@@ -158,8 +151,6 @@ class ExecutedPriceResource(Resource):
             'executed_price': str(price),
         }, 200
     
-
-
 parser = ns.parser()
 parser.add_argument('startTime', required=True, type=str, help='Start time of the transaction period')
 parser.add_argument('endTime', required=True, type=str, help='End time of the transaction period')
@@ -190,7 +181,6 @@ class HistoricalTransactionsResource(Resource):
 
         return {'message': 'Fetching historical transactions in progress...'}, 202
     
-
 api.add_namespace(ns)
 
 if __name__ == '__main__':

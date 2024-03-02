@@ -17,7 +17,6 @@ class TestUniAPI(unittest.TestCase):
 
     # Testing the '/transaction-fee/<transaction_hash>' endpoint
     def test_get_transaction_fee(self):
-        
         transaction_hash = '0xcfc7478431fe9c2ca93c39b4d88b945b5298f229d6e28a93d5d6c71cdb1daa43'
         response = self.client.get(f"/transactions/transaction-fee/{transaction_hash}")
         self.assertIn(response.status_code, [200,201])
