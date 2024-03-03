@@ -135,7 +135,12 @@ def get_txn_from_rpc(txn_hash):
     """
     Fetch transaction data from an Ethereum node using web3.py.
     """
-    txn_receipt  = w3.eth.wait_for_transaction_receipt(txn_hash)
+    try:
+        txn = w3.eth.get_transaction(txn_hash)
+    except Exception as e:
+        print(f"Error fetching transaction data: {e}")
+        return None
+    txn_receipt  = w3.eth.wait_for_transaction_receipt(txn_hash, timeout=1)
     block = w3.eth.get_block(txn_receipt['blockNumber'])
     txn = dict(**txn_receipt)
     txn['timeStamp']= block['timestamp']
@@ -153,7 +158,7 @@ def get_swap_executed_price_from_txhash(txhash):
 
     # Retrieve the transaction receipt
     try:
-        receipt = w3.eth.wait_for_transaction_receipt(txhash)
+        receipt = w3.eth.wait_for_transaction_receipt(txhash, timeout=1)
     except Exception as e:
         print(f"Error fetching transaction receipt: {e}")
         return None

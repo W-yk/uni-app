@@ -101,7 +101,7 @@ class TransactionFee(Resource):
     @ns.doc('get_transaction_fee')
     @ns.response(200, 'Transaction fetched from database',transaction_model)
     @ns.response(201, 'Transaction fetched from RPC and stored',transaction_model)
-    @ns.response(404, 'Transaction not found')
+    @ns.response(400, 'Transaction not vaild')
     @cache.cached(timeout=50, query_string=True)
     def get(self, transaction_hash):
         """Endpoint to retrieve the transaction fee by hash."""
@@ -110,7 +110,7 @@ class TransactionFee(Resource):
             # Logic to fetch from RPC and create new transaction
             transaction_data = utils.get_txn_from_rpc(transaction_hash)
             if not transaction_data:
-                return {'message': 'Transaction not found'}, 404
+                return {'message': 'Transaction not vaild'}, 400
             processed_txn = utils.process_transaction(transaction_data)
             transaction = Transaction(**processed_txn)
             db.session.add(transaction)
@@ -138,19 +138,20 @@ executed_price_model = api.model('ExecutedPrice', {
 class ExecutedPriceResource(Resource):
     @ns.doc('get_executed_price')
     @ns.response(200, 'Success', executed_price_model)
-    @ns.response(404, 'Transaction not found')
+    @ns.response(400, 'Transaction not vaild')
     @cache.cached(timeout=50, query_string=True)
     def get(self, transaction_hash):
         """Endpoint to retrieve the executed price of a transaction."""
         price = utils.get_swap_executed_price_from_txhash(transaction_hash)
         if price is None:
-            return {'message': 'Get uniswap event executed price failed.'}, 404
+            return {'message': 'Transaction not vaild.'}, 400
 
         return {
             'transaction_hash': transaction_hash,
             'executed_price': str(price),
         }, 200
-    
+
+# parser for historical transactions for 10 digit timestamp 
 parser = ns.parser()
 parser.add_argument('startTime', required=True, type=str, help='Start time of the transaction period')
 parser.add_argument('endTime', required=True, type=str, help='End time of the transaction period')
@@ -167,8 +168,9 @@ class HistoricalTransactionsResource(Resource):
         data = parser.parse_args()
         start_time, end_time = data['startTime'], data['endTime']
 
-        if not start_time or not end_time:
-            return {'message': 'Both start time and end time are required.'}, 400
+        # Validate input data
+        if not start_time or not end_time or len(start_time) != 10 or len(end_time) != 10 or not start_time.isdigit() or not end_time.isdigit() or int(start_time) > int(end_time):
+            return {'message': 'Both start time and end time are required and must be 10-digit timestamps.'}, 400
 
         def fetch_and_store_transactions():
             transactions = utils.fetch_historical_transactions(start_time, end_time)
