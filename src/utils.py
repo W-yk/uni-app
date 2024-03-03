@@ -152,7 +152,11 @@ def get_swap_executed_price_from_txhash(txhash):
     uniswap_v2_swap_input_types = [ "int256", "int256", "uint160", "uint128", "int24"]
 
     # Retrieve the transaction receipt
-    receipt = w3.eth.get_transaction_receipt(txhash)
+    try:
+        receipt = w3.eth.wait_for_transaction_receipt(txhash)
+    except Exception as e:
+        print(f"Error fetching transaction receipt: {e}")
+        return None
     logs = receipt.logs
 
     # Loop through the logs
