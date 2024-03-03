@@ -113,17 +113,34 @@ http://localhost:5000/api/docs
 
 This page provides a detailed overview of the available endpoints and their specifications.
 
-# Key Endpoints:
+## Key Endpoints:
 
 - **Get Transaction Fee**: Retrieves the transaction fee by hash.
-    - `GET /transactions/transaction-fee/<transaction_hash>`
+    - `GET http://localhost:5000/transactions/transaction-fee/<transaction_hash>`
 
 - **Retrieve Executed Price**: Gets the executed price of a transaction.
-    - `GET /transactions/executed-price/<transaction_hash>`
+    - `GET http://localhost:5000/transactions/executed-price/<transaction_hash>`
 
 - **Retrieve Historical Transactions**: Triggers a job to fetch and store historical transactions in a given time range.
-    - `POST /transactions/retrieve-historical-transactions` 
+    - `POST http://localhost:5000/transactions/retrieve-historical-transactions` 
     - Request Body: `{"startTime": "start_timestamp", "endTime": "end_timestamp"}`
+
+
+# Troubleshooting
+This section addresses some common issues users may encounter while running the application.
+
+## 1. http://localhost:5000/api/docs not found
+
+Swagger documentation might take a while to load after starting the application. It is recommended to wait 2 minutes after launching the app before visiting http://localhost:5000/api/docs.
+
+## 2. 403 Forbidden error on macOS
+
+If you encounter a 403 Forbidden error when running the application on macOS, it might be due to a conflict with the built-in AirPlay Receiver service. This service uses the same port (5000) by default. To resolve this:
+
+1. Open System Preferences.
+2. Navigate to Sharing.
+3. Locate AirPlay Receiver and uncheck the box to disable it.
+
 
 # Architectural Principles and Design Considerations
 
